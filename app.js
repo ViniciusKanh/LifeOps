@@ -43,7 +43,7 @@ let charts = {};
 /** Backend base */
 const API_KEY = "lifeops_api_base";
 function getApiBase() {
-  return localStorage.getItem(API_KEY) || "http://127.0.0.1:8000";
+  return localStorage.getItem(API_KEY) || "https://huggingface.co/spaces/ViniciusKhan/LifeOps";
 }
 function setApiBase(url) {
   localStorage.setItem(API_KEY, url);
