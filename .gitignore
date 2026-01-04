@@ -1,0 +1,146 @@
+# ============================================================
+# LifeOps / FastAPI + Frontend (GitHub + Hugging Face Spaces)
+# ============================================================
+
+# ----------------------------
+# Segredos / configs locais
+# ----------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets*
+**/secrets*
+**/*secret*
+*.secret
+
+# ----------------------------
+# Python
+# ----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+.tox/
+.nox/
+.cache/
+.venv/
+venv/
+ENV/
+env/
+.conda/
+poetry.lock
+Pipfile.lock
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs / editores
+.vscode/
+.idea/
+*.iml
+
+# ----------------------------
+# Node / Frontend
+# ----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+.next/
+out/
+dist/
+build/
+.cache/
+
+# ----------------------------
+# Logs
+# ----------------------------
+*.log
+logs/
+**/logs/
+
+# ----------------------------
+# Sistema operacional
+# ----------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----------------------------
+# Banco local / dados (CRÍTICO)
+# ----------------------------
+# Se você usa SQLite local, NÃO suba pro Git
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Pastas típicas de dados locais
+data/
+backend/data/
+**/data/
+
+# Backups/exportações
+*.bak
+*.backup
+*.dump
+*.sql.gz
+*.zip
+
+# ----------------------------
+# Hugging Face Spaces / Deploy
+# ----------------------------
+# Evita lixo e arquivos de runtime
+__HF_TMP__/
+tmp/
+temp/
+*.tmp
+
+# Se usar Gradio/Spaces com cache local
+.gradio/
+hf_cache/
+.hf_cache/
+**/.hf_cache/
+
+# ----------------------------
+# Arquivos grandes / mídia (opcional)
+# ----------------------------
+# Descomente se você NÃO quiser versionar relatórios/PDFs e mídias
+# *.pdf
+# *.mp4
+# *.mov
+# *.avi
+# *.mkv
+
+# ----------------------------
+# Permitir arquivos importantes de exemplo
+# ----------------------------
+!README.md
+!requirements.txt
+!pyproject.toml
+!Dockerfile
+!docker-compose.yml
+!app.py
+!main.py
+!backend/main.py
+!backend/app.py

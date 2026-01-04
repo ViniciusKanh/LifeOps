@@ -1,0 +1,525 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LifeOps | Painel Quantificado</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- jsPDF for Reports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --accent: #38bdf8;
+      --glass-bg: rgba(15, 23, 42, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    [data-theme="light"] {
+      --bg-color: #f0f9ff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #0284c7;
+      --glass-bg: rgba(255, 255, 255, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.4);
+      --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .bg-gradient-anim {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.15), transparent 50%),
+                  radial-gradient(circle at 0% 0%, rgba(168, 85, 247, 0.15), transparent 40%),
+                  radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.15), transparent 40%);
+      animation: pulseBg 10s ease-in-out infinite alternate;
+    }
+    @keyframes pulseBg {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--card-shadow);
+    }
+    .glass-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+    [data-theme="light"] .glass-input { background: rgba(0, 0, 0, 0.03); }
+    .glass-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
+    .hud-border { position: relative; }
+    .hud-border::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 10px; height: 10px;
+      border-top: 2px solid var(--accent);
+      border-left: 2px solid var(--accent);
+      opacity: 0.7;
+    }
+    .hud-border::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 10px; height: 10px;
+      border-bottom: 2px solid var(--accent);
+      border-right: 2px solid var(--accent);
+      opacity: 0.7;
+    }
+
+    .modal {
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease-in-out;
+      transform: scale(0.95);
+    }
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+    }
+
+    .fab-pulse {
+      box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+      animation: pulse-blue 2s infinite;
+    }
+    @keyframes pulse-blue {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+
+    /* Modal Snix: texto longo legível */
+    .snix-pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen pb-24 selection:bg-sky-500 selection:text-white">
+  <div class="bg-gradient-anim"></div>
+
+  <main class="max-w-md mx-auto min-h-screen relative flex flex-col p-4 md:max-w-2xl lg:max-w-3xl">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6 pt-2">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <i data-lucide="activity" class="w-6 h-6 text-[var(--accent)]"></i>
+          LifeOps
+        </h1>
+        <p class="text-sm opacity-70 font-mono" id="currentDate">Carregando data...</p>
+      </div>
+
+      <div class="flex gap-2">
+        <!-- Snix -->
+        <button onclick="openSnix()"
+          class="p-2 rounded-full glass-panel hover:bg-white/10 transition-colors"
+          aria-label="Abrir Snix (Coach IA)"
+          title="Snix (Coach IA)">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </button>
+
+        <button onclick="toggleTheme()"
+          class="p-2 rounded-full glass-panel hover:bg-white/10 transition-colors"
+          aria-label="Alternar Tema"
+          title="Tema">
+          <i data-lucide="sun-moon" class="w-5 h-5"></i>
+        </button>
+
+        <button onclick="openSettings()"
+          class="p-2 rounded-full glass-panel hover:bg-white/10 transition-colors"
+          aria-label="Configurações"
+          title="Configurações">
+          <i data-lucide="settings-2" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Insights -->
+    <section id="insightsContainer" class="mb-6 hidden">
+      <div class="glass-panel rounded-2xl p-4 border-l-4 border-l-[var(--accent)] hud-border">
+        <h3 class="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 text-[var(--accent)]">
+          <i data-lucide="zap" class="w-4 h-4"></i> Insights Inteligentes
+        </h3>
+        <ul id="insightsList" class="space-y-2 text-sm opacity-90"></ul>
+      </div>
+    </section>
+
+    <!-- Streak & Consistency -->
+    <section class="grid grid-cols-2 gap-4 mb-6">
+      <div class="glass-panel rounded-2xl p-4 text-center">
+        <span class="block text-xs uppercase opacity-60">Sequência</span>
+        <div class="text-3xl font-bold font-mono text-[var(--accent)]" id="streakDisplay">0</div>
+        <span class="text-xs">dias seguidos</span>
+      </div>
+      <div class="glass-panel rounded-2xl p-4 text-center">
+        <span class="block text-xs uppercase opacity-60">Consistência</span>
+        <div class="text-3xl font-bold font-mono" id="consistencyDisplay">0%</div>
+        <span class="text-xs">últimos 7 dias</span>
+      </div>
+    </section>
+
+    <!-- KPI Cards -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div class="glass-panel rounded-xl p-3 flex flex-col justify-between h-28 relative overflow-hidden group">
+        <div class="absolute -right-2 -top-2 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i data-lucide="moon" class="w-16 h-16"></i>
+        </div>
+        <div>
+          <span class="text-xs uppercase font-bold opacity-70">Sono (7d)</span>
+          <h2 class="text-2xl font-mono mt-1" id="kpiSleep">--</h2>
+        </div>
+        <div class="flex items-center gap-1 text-xs" id="statusSleep">
+          <div class="w-2 h-2 rounded-full bg-gray-500"></div> Calculando...
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-xl p-3 flex flex-col justify-between h-28 relative overflow-hidden group">
+        <div class="absolute -right-2 -top-2 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i data-lucide="dumbbell" class="w-16 h-16"></i>
+        </div>
+        <div>
+          <span class="text-xs uppercase font-bold opacity-70">Treino (7d)</span>
+          <h2 class="text-2xl font-mono mt-1" id="kpiWorkout">--</h2>
+        </div>
+        <div class="flex items-center gap-1 text-xs" id="statusWorkout">
+          <div class="w-2 h-2 rounded-full bg-gray-500"></div> Calculando...
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-xl p-3 flex flex-col justify-between h-28 relative overflow-hidden group">
+        <div class="absolute -right-2 -top-2 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i data-lucide="utensils" class="w-16 h-16"></i>
+        </div>
+        <div>
+          <span class="text-xs uppercase font-bold opacity-70">Nutrição</span>
+          <h2 class="text-2xl font-mono mt-1" id="kpiFood">--</h2>
+        </div>
+        <div class="flex items-center gap-1 text-xs" id="statusFood">
+          <div class="w-2 h-2 rounded-full bg-gray-500"></div> Calculando...
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-xl p-3 flex flex-col justify-between h-28 relative overflow-hidden group">
+        <div class="absolute -right-2 -top-2 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i data-lucide="brain-circuit" class="w-16 h-16"></i>
+        </div>
+        <div>
+          <span class="text-xs uppercase font-bold opacity-70">Humor</span>
+          <h2 class="text-2xl font-mono mt-1" id="kpiMood">--</h2>
+        </div>
+        <div class="flex items-center gap-1 text-xs" id="statusMood">
+          <div class="w-2 h-2 rounded-full bg-gray-500"></div> Calculando...
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="glass-panel rounded-2xl p-4 mb-6">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider opacity-70">Tendências</h3>
+          <p class="text-[11px] opacity-60 font-mono">
+            Mostrando: <span id="chartCount">0</span> registros
+          </p>
+        </div>
+
+        <!-- Seletor (UI) - se quiser ligar no JS depois -->
+        <div class="min-w-[150px]">
+          <label class="text-[10px] uppercase opacity-60 block mb-1">Janela</label>
+          <select id="windowDays" class="w-full glass-input text-xs p-2 rounded">
+            <option value="7">7 dias</option>
+            <option value="14" selected>14 dias</option>
+            <option value="30">30 dias</option>
+            <option value="90">90 dias</option>
+            <option value="all">Tudo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="h-56 w-full">
+        <canvas id="trendsChart"></canvas>
+      </div>
+
+      <p class="text-[11px] opacity-60 mt-3">
+        Linhas: <span class="font-mono">Sono (h)</span>, <span class="font-mono">Humor (0–10)</span> e <span class="font-mono">Ansiedade (0–10)</span>.
+      </p>
+    </section>
+
+    <!-- History -->
+    <section class="mb-20">
+      <h3 class="text-sm font-bold uppercase tracking-wider mb-4 opacity-70 flex justify-between items-center">
+        Histórico Recente
+        <button onclick="toggleHistory()" class="text-xs text-[var(--accent)] hover:underline">Ver/Ocultar</button>
+      </h3>
+      <div id="historyList" class="space-y-3 hidden"></div>
+    </section>
+
+  </main>
+
+  <!-- FAB -->
+  <button onclick="openLogModal()"
+    class="fixed bottom-6 right-6 w-14 h-14 bg-[var(--accent)] text-white rounded-full flex items-center justify-center shadow-lg hover:brightness-110 active:scale-95 transition-all z-40 fab-pulse">
+    <i data-lucide="plus" class="w-8 h-8"></i>
+  </button>
+
+  <!-- Snix Modal -->
+  <div id="snixModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none modal">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSnix()"></div>
+
+    <div class="bg-[var(--bg-color)] w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative pointer-events-auto border-t sm:border border-[var(--glass-border)] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-[var(--accent)]"></i>
+            Snix
+          </h2>
+          <p class="text-[11px] opacity-70 font-mono">Coach IA baseado nos seus registros (com foco em ansiedade).</p>
+        </div>
+        <button onclick="closeSnix()" class="p-1 opacity-60 hover:opacity-100"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="glass-panel rounded-xl p-3 mb-4">
+        <div class="flex items-end gap-2">
+          <div class="w-full">
+            <label class="text-[10px] uppercase opacity-60">Janela (dias)</label>
+            <select id="snixDays" class="w-full glass-input text-xs p-2 rounded">
+              <option value="7">7</option>
+              <option value="14" selected>14</option>
+              <option value="30">30</option>
+              <option value="90">90</option>
+            </select>
+          </div>
+          <button onclick="runSnix()"
+            class="p-2 bg-[var(--accent)] text-white rounded-lg hover:brightness-110 transition text-xs font-bold flex items-center justify-center gap-1 min-w-[140px]">
+            <i data-lucide="wand-2" class="w-4 h-4"></i>
+            Analisar
+          </button>
+        </div>
+
+        <p id="snixStatus" class="text-[11px] opacity-70 mt-2 hidden">-</p>
+      </div>
+
+      <div class="glass-panel rounded-xl p-4">
+        <h3 class="text-xs font-bold uppercase opacity-70 mb-2 flex items-center gap-2">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Relatório
+        </h3>
+        <pre id="snixOutput" class="snix-pre text-sm opacity-90">Clique em “Analisar” para o Snix ler seus dados e gerar um plano prático.</pre>
+        <p class="text-[11px] opacity-60 mt-3">
+          Nota: isso não substitui acompanhamento profissional. Serve para organizar hábitos, sinais e prioridades — sem papo furado.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-2 mt-4">
+        <button onclick="closeSnix()" class="p-3 rounded-lg border border-[var(--glass-border)] text-sm font-bold hover:bg-white/10">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log Modal -->
+  <div id="logModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none modal">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeLogModal()"></div>
+
+    <div class="bg-[var(--bg-color)] w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative pointer-events-auto border-t sm:border border-[var(--glass-border)] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Registrar Dia</h2>
+        <button onclick="closeLogModal()" class="p-1 opacity-60 hover:opacity-100"><i data-lucide="x"></i></button>
+      </div>
+
+      <form id="logForm" onsubmit="saveLog(event)">
+        <input type="date" id="inputDate" required class="w-full glass-input p-3 rounded-lg mb-4 font-mono">
+
+        <div class="mb-4">
+          <label class="block text-xs uppercase font-bold mb-1 opacity-70">Sono (Horas e Qualidade)</label>
+          <div class="flex gap-2">
+            <input type="number" id="inputSleep" step="0.1" min="0" max="24" placeholder="h"
+              class="w-1/2 glass-input p-3 rounded-lg font-mono text-lg" required>
+            <select id="inputSleepQual" class="w-1/2 glass-input p-3 rounded-lg">
+              <option value="5">⭐⭐⭐⭐⭐</option>
+              <option value="4">⭐⭐⭐⭐</option>
+              <option value="3" selected>⭐⭐⭐</option>
+              <option value="2">⭐⭐</option>
+              <option value="1">⭐</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-4 p-3 rounded-lg border border-[var(--glass-border)] bg-white/5">
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs uppercase font-bold opacity-70">Treinou hoje?</label>
+            <input type="checkbox" id="inputTrainDone" class="w-5 h-5 accent-[var(--accent)]" onchange="toggleTrainInputs()">
+          </div>
+          <div id="trainDetails" class="hidden transition-all space-y-2 mt-2">
+            <input type="number" id="inputTrainMin" placeholder="Minutos" class="w-full glass-input p-2 rounded-lg font-mono">
+            <div class="grid grid-cols-4 gap-2 text-xs">
+              <button type="button" onclick="setTrainType('Força')" class="train-type-btn p-2 rounded glass-panel text-center hover:bg-[var(--accent)] hover:text-white transition">Força</button>
+              <button type="button" onclick="setTrainType('Cardio')" class="train-type-btn p-2 rounded glass-panel text-center hover:bg-[var(--accent)] hover:text-white transition">Cardio</button>
+              <button type="button" onclick="setTrainType('Flex')" class="train-type-btn p-2 rounded glass-panel text-center hover:bg-[var(--accent)] hover:text-white transition">Flex</button>
+              <button type="button" onclick="setTrainType('Outro')" class="train-type-btn p-2 rounded glass-panel text-center hover:bg-[var(--accent)] hover:text-white transition">Outro</button>
+            </div>
+            <input type="hidden" id="inputTrainType" value="">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-xs uppercase font-bold mb-1 opacity-70">Alimentação</label>
+          <div class="flex gap-2 mb-2">
+            <select id="inputFoodScore" class="w-full glass-input p-3 rounded-lg">
+              <option value="5">5 - Excelente (Limpa)</option>
+              <option value="4" selected>4 - Boa (Pouco proc.)</option>
+              <option value="3">3 - Média (Aceitável)</option>
+              <option value="2">2 - Ruim (Exageros)</option>
+              <option value="1">1 - Péssima</option>
+            </select>
+          </div>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" id="inputWater" class="w-4 h-4 accent-[var(--accent)]"> Hidratação OK
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" id="inputMeals" class="w-4 h-4 accent-[var(--accent)]"> Horários OK
+            </label>
+          </div>
+        </div>
+
+        <div class="mb-6 grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs uppercase font-bold mb-1 opacity-70">Humor (0-10)</label>
+            <input type="range" id="inputMood" min="0" max="10" value="7"
+              class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[var(--accent)]"
+              oninput="updateRangeVal('valMood', this.value)">
+            <div class="text-right text-xs font-mono" id="valMood">7</div>
+          </div>
+          <div>
+            <label class="block text-xs uppercase font-bold mb-1 opacity-70">Ansiedade (0-10)</label>
+            <input type="range" id="inputAnxiety" min="0" max="10" value="3"
+              class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-400"
+              oninput="updateRangeVal('valAnx', this.value)">
+            <div class="text-right text-xs font-mono" id="valAnx">3</div>
+          </div>
+        </div>
+
+        <textarea id="inputNotes" rows="2" placeholder="Nota rápida (opcional)..."
+          class="w-full glass-input p-3 rounded-lg text-sm mb-6"></textarea>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" onclick="closeLogModal()" class="p-3 rounded-lg border border-[var(--glass-border)] text-sm font-bold hover:bg-white/10">Cancelar</button>
+          <button type="submit" class="p-3 rounded-lg bg-[var(--accent)] text-white text-sm font-bold shadow-lg hover:brightness-110">Salvar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none modal">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSettings()"></div>
+
+    <div class="bg-[var(--bg-color)] w-full max-w-md rounded-2xl p-6 relative pointer-events-auto border border-[var(--glass-border)]">
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="sliders"></i> Configurações</h2>
+
+      <div class="space-y-4 mb-4">
+        <div>
+          <label class="block text-xs uppercase font-bold opacity-60">Meta: Horas de Sono</label>
+          <input type="number" id="goalSleep" class="glass-input w-full p-2 rounded font-mono" step="0.5">
+        </div>
+        <div>
+          <label class="block text-xs uppercase font-bold opacity-60">Meta: Treinos / Semana</label>
+          <input type="number" id="goalWorkout" class="glass-input w-full p-2 rounded font-mono">
+        </div>
+        <div>
+          <label class="block text-xs uppercase font-bold opacity-60">Limite: Ansiedade Max</label>
+          <input type="number" id="goalAnxiety" class="glass-input w-full p-2 rounded font-mono">
+        </div>
+      </div>
+
+      <h3 class="text-sm font-bold uppercase mb-2">Dados & Backend</h3>
+      <div class="space-y-2 mb-4">
+        <button onclick="downloadJSON()" class="w-full p-2 text-xs border border-[var(--glass-border)] rounded hover:bg-white/5 flex items-center justify-center gap-1">
+          <i data-lucide="download"></i> Backup JSON
+        </button>
+
+        <label class="w-full p-2 text-xs border border-[var(--glass-border)] rounded hover:bg-white/5 flex items-center justify-center gap-1 cursor-pointer">
+          <i data-lucide="upload"></i> Restaurar JSON
+          <input type="file" class="hidden" onchange="uploadJSON(this)">
+        </label>
+
+        <button onclick="configureBackend()" class="w-full p-2 text-xs border border-[var(--glass-border)] rounded hover:bg-white/5 flex items-center justify-center gap-1">
+          <i data-lucide="server"></i> Configurar URL do Backend
+        </button>
+
+        <p class="text-[11px] opacity-60 font-mono">
+          Backend atual: <span id="backendUrlLabel">-</span>
+        </p>
+      </div>
+
+      <h3 class="text-sm font-bold uppercase mb-2">Relatórios</h3>
+      <div class="space-y-2 mb-6">
+        <div class="flex gap-2 items-end">
+          <div class="w-full">
+            <label class="text-[10px] uppercase opacity-60">Mês</label>
+            <input type="month" id="reportMonth" class="w-full glass-input text-xs p-2 rounded">
+          </div>
+          <button onclick="generatePDF()"
+            class="p-2 bg-white/10 rounded hover:bg-[var(--accent)] hover:text-white transition w-full h-[34px] flex items-center justify-center text-xs font-bold gap-1">
+            <i data-lucide="file-text"></i> Gerar PDF
+          </button>
+        </div>
+      </div>
+
+      <button onclick="saveSettings()" class="w-full p-3 bg-[var(--accent)] text-white font-bold rounded-lg shadow-lg">
+        Salvar Configurações
+      </button>
+    </div>
+  </div>
+
+  <!-- JS externo -->
+  <script src="./app.js"></script>
+</body>
+</html>
