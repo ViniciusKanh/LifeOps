@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>LifeOps | Painel Quantificado</title>
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS (DEV). Produção: ideal compilar, mas aqui é ok para GitHub Pages -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Chart.js -->
@@ -131,12 +131,26 @@
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
     }
 
-    /* Modal Snix: texto longo legível */
     .snix-pre {
       white-space: pre-wrap;
       word-break: break-word;
     }
   </style>
+
+  <!-- ✅ FIX: define backend correto (apenas se ainda não estiver configurado) -->
+  <script>
+    (function () {
+      try {
+        const API_KEY = "lifeops_api_base";
+        const already = localStorage.getItem(API_KEY);
+        if (!already) {
+          localStorage.setItem(API_KEY, "https://viniciuskhan-lifeops.hf.space");
+        }
+      } catch (e) {
+        // Se storage estiver bloqueado, segue sem travar
+      }
+    })();
+  </script>
 </head>
 
 <body class="antialiased min-h-screen pb-24 selection:bg-sky-500 selection:text-white">
@@ -268,7 +282,6 @@
           </p>
         </div>
 
-        <!-- Seletor (UI) - se quiser ligar no JS depois -->
         <div class="min-w-[150px]">
           <label class="text-[10px] uppercase opacity-60 block mb-1">Janela</label>
           <select id="windowDays" class="w-full glass-input text-xs p-2 rounded">
