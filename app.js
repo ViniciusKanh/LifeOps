@@ -52,9 +52,10 @@ function getApiBase() {
   const saved = localStorage.getItem(API_KEY);
   if (saved) return saved;
 
-  // Default: backend no Hugging Face
-  return "https://huggingface.co/spaces/ViniciusKhan/LifeOps";
+  // ✅ Default correto: host do app (hf.space), não a página do Hub (huggingface.co/spaces)
+  return "https://viniciuskanh-lifeops.hf.space"; // ajuste se o slug estiver diferente
 }
+
 
 function setApiBase(url) {
   localStorage.setItem(API_KEY, url);
