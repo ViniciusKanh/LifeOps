@@ -42,18 +42,36 @@ let charts = {};
 
 /** Backend base */
 const API_KEY = "lifeops_api_base";
+
+function normalizeBaseUrl(url) {
+  if (!url) return "";
+  let u = String(url).trim().replace(/\/+$/, "");
+
+  // força https quando vier sem protocolo
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+
+  // correção automática do typo clássico
+  u = u.replace("viniciuskanh-lifeops.hf.space", "viniciuskhan-lifeops.hf.space");
+
+  return u;
+}
+
 function getApiBase() {
-  // Se estiver rodando dentro do hf.space, chama a própria origem
+  // 1) se estiver rodando dentro de um Space (mesma origem), usa a própria origem
   if (window.location.hostname.endsWith("hf.space")) {
     return window.location.origin;
   }
 
-  // Se usuário configurou manualmente
-  const saved = localStorage.getItem(API_KEY);
+  // 2) se usuário configurou manualmente, usa (normalizado)
+  const saved = normalizeBaseUrl(localStorage.getItem(API_KEY));
   if (saved) return saved;
 
-  // Default: backend do Space (APP), não a página do Space
-  return "https://viniciuskhan-lifeops.hf.space";
+  // 3) default correto (normalizado)
+  return normalizeBaseUrl("https://viniciuskhan-lifeops.hf.space");
+}
+
+function setApiBase(url) {
+  localStorage.setItem(API_KEY, normalizeBaseUrl(url));
 }
 
 

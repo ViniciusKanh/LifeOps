@@ -43,8 +43,21 @@ let charts = {};
 /** Backend base */
 const API_KEY = "lifeops_api_base";
 function getApiBase() {
-  return localStorage.getItem(API_KEY) || "http://127.0.0.1:8000";
+  // Se estiver rodando dentro do hf.space, chama a própria origem
+  if (window.location.hostname.endsWith("hf.space")) {
+    return window.location.origin;
+  }
+
+  // Se usuário configurou manualmente
+  const saved = localStorage.getItem(API_KEY);
+  if (saved) return saved;
+
+  // Default: backend do Space (APP), não a página do Space
+  return "https://viniciuskhan-lifeops.hf.space";
 }
+
+
+
 function setApiBase(url) {
   localStorage.setItem(API_KEY, url);
 }
