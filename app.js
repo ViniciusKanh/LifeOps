@@ -53,7 +53,7 @@ function getApiBase() {
   if (saved) return saved;
 
   // Default: backend no Hugging Face
-  return "https://viniciuskhan-lifeops.hf.space";
+  return "https://huggingface.co/spaces/ViniciusKhan/LifeOps";
 }
 
 function setApiBase(url) {
